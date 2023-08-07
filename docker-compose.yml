@@ -16,7 +16,7 @@ services:
 
   # Your Application Container
   app:
-    image: oranage:latest
+    image: orange:latest
     container_name: orange-container
     restart: always
     depends_on:
