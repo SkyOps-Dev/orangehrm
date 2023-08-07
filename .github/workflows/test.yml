@@ -23,7 +23,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
           (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
-            git clone https://github.com/syedmusaali359/orangehrm.git
+            git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             sudo apt-get update
             sudo apt-get install ca-certificates curl gnupg
