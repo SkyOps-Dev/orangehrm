@@ -3,7 +3,7 @@ name: OrangeHrm CI/CD
 on:
   push:
     branches:
-        - remotes/origin/5.1
+        - 5.1-EC2-Docker
 jobs: 
   SSH-into-instance:
     runs-on: ubuntu-latest
