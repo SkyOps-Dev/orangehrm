@@ -25,6 +25,7 @@ jobs:
           (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
+            git checkout remotes/origin/5.1-EC2-Docker
             sudo apt-get update
             sudo apt-get install ca-certificates curl gnupg
             sudo install -m 0755 -d /etc/apt/keyrings
