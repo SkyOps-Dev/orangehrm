@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # MySQL Container
+  mysql:
+    image: mysql:5.6
+    container_name: orange-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: orange1
+      MYSQL_DATABASE: orange1
+      MYSQL_USER: orange1
+      MYSQL_PASSWORD: orange1
+    ports:
+      - "3306:3306"
+
+  # Your Application Container
+  app:
+    image: oranage:latest
+    container_name: orange-container
+    restart: always
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    ports:
+      - "8080:80"
