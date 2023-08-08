@@ -26,26 +26,39 @@ jobs:
          run: |
             aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
      
+       - name: Check if Main Stack Exists
+         id: check-stack
+         run: |
+          stack_status=$(aws cloudformation describe-stacks \
+            --stack-name MainStack \
+            --query "Stacks[0].StackStatus" \
+            --output text || echo "NOT_FOUND")
+          echo "::set-output name=stack_status::$stack_status"
+
        - name: Deploy Main Stack
          run: |
+          stack_status="${{ steps.check-stack.outputs.stack_status }}"
+          if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
-            --stack-name MainStack \
-            --template-body file://main-vpc-ec2.yaml \
-            --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
-            --capabilities CAPABILITY_NAMED_IAM
-     
-       - name: Wait for Main Stack Deployment
-         run: |
+              --stack-name MainStack \
+              --template-body file://main-stack-template.yaml \
+              --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
+              --capabilities CAPABILITY_NAMED_IAM
             aws cloudformation wait stack-create-complete --stack-name MainStack
-     
+          else
+            echo "MainStack already exists, skipping deployment."
+          fi
+
        - name: Get EC2 Outputs
          id: get-ec2-outputs
          run: |
+          if [ "$stack_status" = "CREATE_COMPLETE" ]; then
             ec2_outputs=$(aws cloudformation describe-stacks \
-            --stack-name MainStack \
-            --query "Stacks[0].Outputs[?starts_with(OutputKey,'EC2ChildStack')]" \
-            --output json)
+              --stack-name MainStack \
+              --query "Stacks[0].Outputs[?starts_with(OutputKey,'EC2ChildStack')]" \
+              --output json)
             echo "EC2_OUTPUTS=$ec2_outputs" >> $GITHUB_ENV
-     
+          fi
+
     outputs:
-     ec2_outputs: ${{ steps.get-ec2-outputs.outputs.ec2_outputs }}
+      ec2_outputs: ${{ steps.get-ec2-outputs.outputs.ec2_outputs }}
