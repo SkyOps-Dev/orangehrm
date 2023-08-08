@@ -33,7 +33,7 @@ jobs:
 
        - name: Deploy vpc Stack
          run: |
-          stack_status="${{ steps.check-stack.outputs.stack_status }}"
+          vpc_stack_status="${{ steps.check-stack.outputs.stack_status }}"
           if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
               --stack-name vpc \
