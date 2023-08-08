@@ -40,8 +40,6 @@ jobs:
             --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name VpcStack
-          else
-            echo "VpcStack already exists, skipping deployment."
 
        - name: Check if ec2Stack Exists
          id: check-ec2-stack
@@ -68,8 +66,6 @@ jobs:
                          ParameterKey=PublicSubnet1,ParameterValue="$public_subnet1" \
             --capabilities CAPABILITY_NAMED_IAM
            aws cloudformation wait stack-create-complete --stack-name ec2Stack
-           else
-            echo "ec2Stack already exists, skipping deployment."
 
        - name: Get EC2 Public IP	
          id: get-ec2-public-ip	
