@@ -41,11 +41,6 @@ Parameters:
     MaxLength: '18'
     MinLength: '9'
     Type: String
-
-  S3BucketName:
-    Type: String
-    Description: Name of the S3 bucket containing the all the templates
-    Default: cfn-template09
 ###VPC_END###
 
 ###EC2_START###
@@ -73,7 +68,7 @@ Resources:
   vpc:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./vpc.yaml
+      TemplateURL: https://github.com/SkyOps-Dev/orangehrm/5.1-ec2-docker-infra/vpc.yaml
       Parameters:
         VpcStackName: !Ref VpcStackName
         VpcCIDR: !Ref VpcCIDR
@@ -86,7 +81,7 @@ Resources:
   ec2:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./ec2.yaml
+      TemplateURL: ./5.1-ec2-docker-infra/ec2.yaml
       Parameters:
         VpcId: !GetAtt vpc.Outputs.VpcId
         PublicSubnet1: !GetAtt vpc.Outputs.PublicSubnet1
