@@ -22,11 +22,11 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
      
-       - name: Check if Main Stack Exists
+       - name: Check if Vpc Stack Exists
          id: check-stack
          run: |
           stack_status=$(aws cloudformation describe-stacks \
-            --stack-name MainStack \
+            --stack-name VpcStack \
             --query "Stacks[0].StackStatus" \
             --output text || echo "NOT_FOUND")
           echo "::set-output name=stack_status::$stack_status"
@@ -37,12 +37,12 @@ jobs:
           if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
               --stack-name MainStack \
-              --template-body file://main-vpc-ec2.yaml \
+              --template-body file://vpc.yaml \
               --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
               --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-create-complete --stack-name MainStack
+            aws cloudformation wait stack-create-complete --stack-name VpcStack
           else
-            echo "MainStack already exists, skipping deployment."
+            echo "VpcStack already exists, skipping deployment."
           fi
 
        - name: Get EC2 Public IP	
