@@ -29,10 +29,10 @@ jobs:
             --stack-name VpcStack \
             --query "Stacks[0].StackStatus" \
             --output text || echo "NOT_FOUND")
-          echo "::set-output name=vpc_stack_status::$vpc_stack_status"
+          echo "VPC_STACK_STATUS=$vpc_stack_status" >> $GITHUB_ENV
 
        - name: Deploy VPC Stack
-         if: steps.check-vpc-stack.outputs.vpc_stack_status == 'NOT_FOUND'
+         if: env.VPC_STACK_STATUS == 'NOT_FOUND'
          run: |
           aws cloudformation create-stack \
             --stack-name VpcStack \
@@ -40,6 +40,8 @@ jobs:
             --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name VpcStack
+         env:
+          VPC_STACK_STATUS: ${{ steps.check-vpc-stack.outputs.VPC_STACK_STATUS }}
 
        - name: Check if ec2Stack Exists
          id: check-ec2-stack
@@ -48,10 +50,10 @@ jobs:
             --stack-name ec2Stack \
             --query "Stacks[0].StackStatus" \
             --output text || echo "NOT_FOUND")
-          echo "::set-output name=ec2_stack_status::$ec2_stack_status"
+          echo "EC2_STACK_STATUS=$ec2_stack_status" >> $GITHUB_ENV
 
        - name: Deploy ec2 Stack
-         if: steps.check-ec2-stack.outputs.ec2_stack_status == 'NOT_FOUND'
+         if: env.EC2_STACK_STATUS == 'NOT_FOUND'
          run: |
           vpc_outputs=$(aws cloudformation describe-stacks --stack-name VpcStack --query "Stacks[0].Outputs" --output json)
           vpc_id=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "VpcId") | .OutputValue')
@@ -66,6 +68,8 @@ jobs:
                          ParameterKey=PublicSubnet1,ParameterValue="$public_subnet1" \
             --capabilities CAPABILITY_NAMED_IAM
            aws cloudformation wait stack-create-complete --stack-name ec2Stack
+          env:
+          EC2_STACK_STATUS: ${{ steps.check-ec2-stack.outputs.VPC_STACK_STATUS }}
 
        - name: Get EC2 Public IP	
          id: get-ec2-public-ip	
