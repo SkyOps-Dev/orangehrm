@@ -1,0 +1,48 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - 5.1-ec2-docker-infra
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+             role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+             role-duration-seconds: 3600
+             aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Fetch Main Stack Template
+        run: |
+            aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
+     
+      - name: Deploy Main Stack
+        run: |
+            aws cloudformation create-stack \
+            --stack-name MainStack \
+            --template-body file://main-vpc-ec2.yaml \
+            --capabilities CAPABILITY_NAMED_IAM
+     
+      - name: Wait for Main Stack Deployment
+        run: |
+            aws cloudformation wait stack-create-complete --stack-name MainStack
+     
+      - name: Get EC2 Outputs
+        id: get-ec2-outputs
+        run: |
+            ec2_outputs=$(aws cloudformation describe-stacks \
+            --stack-name MainStack \
+            --query "Stacks[0].Outputs[?starts_with(OutputKey,'EC2ChildStack')]" \
+            --output json)
+            echo "::set-output name=ec2_outputs::$ec2_outputs"
+     
+       outputs:
+         ec2_outputs: ${{ steps.get-ec2-outputs.outputs.ec2_outputs }}
