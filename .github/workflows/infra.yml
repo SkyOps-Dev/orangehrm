@@ -42,7 +42,6 @@ jobs:
           aws cloudformation wait stack-create-complete --stack-name VpcStack
           else
             echo "VpcStack already exists, skipping deployment."
-          fi
 
        - name: Check if ec2Stack Exists
          id: check-ec2-stack
