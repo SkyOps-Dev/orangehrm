@@ -45,7 +45,7 @@ jobs:
             --stack-name MainStack \
             --query "Stacks[0].Outputs[?starts_with(OutputKey,'EC2ChildStack')]" \
             --output json)
-            echo "::set-output name=ec2_outputs::$ec2_outputs"
+            echo "EC2_OUTPUTS=$ec2_outputs" >> $GITHUB_ENV
      
     outputs:
      ec2_outputs: ${{ steps.get-ec2-outputs.outputs.ec2_outputs }}
