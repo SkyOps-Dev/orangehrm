@@ -1,4 +1,4 @@
-ame: Deploy Infrastructure
+Name: Deploy Infrastructure
 
 on:
   push:
