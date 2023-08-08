@@ -68,7 +68,7 @@ jobs:
                          ParameterKey=PublicSubnet1,ParameterValue="$public_subnet1" \
             --capabilities CAPABILITY_NAMED_IAM
            aws cloudformation wait stack-create-complete --stack-name ec2Stack
-          else
+           else
             echo "ec2Stack already exists, skipping deployment."
 
        - name: Get EC2 Public IP	
