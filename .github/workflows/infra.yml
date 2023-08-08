@@ -41,7 +41,7 @@ jobs:
           if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
               --stack-name MainStack \
-              --template-body file://main-stack-template.yaml \
+              --template-body file://main-vpc-ec2.yaml \
               --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
               --capabilities CAPABILITY_NAMED_IAM
             aws cloudformation wait stack-create-complete --stack-name MainStack
