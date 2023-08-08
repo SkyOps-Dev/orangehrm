@@ -47,23 +47,21 @@ jobs:
          id: check-ec2-stack
          run: |
           ec2_stack_status=$(aws cloudformation describe-stacks \
-          --stack-name ec2Stack \
-          --query "Stacks[0].StackStatus" \
-          --output text || echo "NOT_FOUND")
+            --stack-name ec2Stack \
+            --query "Stacks[0].StackStatus" \
+            --output text || echo "NOT_FOUND")
           echo "::set-output name=ec2_stack_status::$ec2_stack_status"
 
        - name: Deploy ec2 Stack
+         if: steps.check-ec2-stack.outputs.ec2_stack_status == 'NOT_FOUND'
          run: |
-          ec2_stack_status="${{ steps.check-stack.outputs.stack_status }}"
-          if [ "$stack_status" = "NOT_FOUND" ]; then
-            aws cloudformation create-stack \
+           aws cloudformation create-stack \
               --stack-name ec2Stack \
               --template-body file://ec2.yaml \
               --capabilities CAPABILITY_NAMED_IAM
             aws cloudformation wait stack-create-complete --stack-name ec2Stack
-          else
+           else
             echo "ec2Stack already exists, skipping deployment."
-          fi
 
        - name: Get EC2 Public IP	
          id: get-ec2-public-ip	
