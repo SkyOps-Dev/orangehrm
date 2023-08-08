@@ -16,6 +16,10 @@ jobs:
          run: |
           REMOTE_HOST="${{ needs.deploy.outputs.ec2_public_ip }}"
           echo "REMOTE_HOST=$REMOTE_HOST" >> $GITHUB_ENV
+
+       - name: Checkout OrangeHRM branch
+         run: |
+          git checkout 5.1-EC2-Docker
        
        - uses: actions/checkout@v3
        - name: SSH into EC2 Intance
