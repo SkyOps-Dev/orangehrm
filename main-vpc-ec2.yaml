@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Main Nested Stack Template.
+
+Parameters:
+###VPC_START###
+  VpcStackName:
+    Description: The name of the VPC Stack that exports values 
+    Type: String
+    
+  VpcCIDR:
+    Description: Please Enter the IP range for this VPC
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: Please Enter the IP range for this VPC public subnet1.
+    Type: String
+    Default: 10.0.1.0/24
+
+  PublicSubnet2CIDR:
+    Description: Please Enter the IP range for this VPC public subnet2.
+    Type: String
+    Default: 10.0.2.0/24
+
+  PrivateSubnet1CIDR:
+    Description: Please Enter the IP range for this VPC private subnet1.
+    Type: String
+    Default: 10.0.11.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Please Enter the IP range for this VPC private subnet2.
+    Type: String
+    Default: 10.0.12.0/24
+
+  SSHLocation: 
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,3})'
+    ConstraintDescription: Must be a valid ip Cidr Range pf the form x.x.x.x/x.
+    Default: 0.0.0.0/0
+    Description: The IP adrees range that can be used to access the web server using SSH.
+    MaxLength: '18'
+    MinLength: '9'
+    Type: String
+
+  S3BucketName:
+    Type: String
+    Description: Name of the S3 bucket containing the all the templates
+    Default: cfn-template09
+###VPC_END###
+
+###EC2_START###
+  EC2KeyName:
+    Description: The name of an EC2 KeyPair to enable SSH access to the instance.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: musa
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+
+  EC2ImageID:
+    Description: The ID of the EC2 image to be used for the instances.
+    Type: String
+    Default: ami-053b0d53c279acc90
+
+  InstanceType:
+    Description: Web servers EC2 Instance Type.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+    ConstraintDescription: Must be a valid EC2 Instance Type.
+###EC2_END###
+
+Resources:
+  vpc:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/vpc.yaml
+      Parameters:
+        VpcStackName: !Ref VpcStackName
+        VpcCIDR: !Ref VpcCIDR
+        PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
+        PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+        PrivateSubnet1CIDR: !Ref PrivateSubnet1CIDR
+        PrivateSubnet2CIDR: !Ref PrivateSubnet2CIDR
+        SSHLocation: !Ref SSHLocation
+
+  ec2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/ec2.yaml
+      Parameters:
+        VpcId: !GetAtt vpc.Outputs.VpcId
+        PublicSubnet1: !GetAtt vpc.Outputs.PublicSubnet1
+        EC2KeyName: !Ref EC2KeyName
+        EC2ImageID: !Ref EC2ImageID
+        InstanceType: !Ref InstanceType
+        WebServerSecurityGroup: !GetAtt vpc.Outputs.WebServerSecurityGroup
