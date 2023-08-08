@@ -49,16 +49,15 @@ jobs:
             echo "MainStack already exists, skipping deployment."
           fi
 
-       - name: Get EC2 Outputs
-         id: get-ec2-outputs
-         run: |
-          if [ "$stack_status" = "CREATE_COMPLETE" ]; then
-            ec2_outputs=$(aws cloudformation describe-stacks \
-              --stack-name MainStack \
-              --query "Stacks[0].Outputs[?starts_with(OutputKey,'EC2ChildStack')]" \
-              --output json)
-            echo "EC2_OUTPUTS=$ec2_outputs" >> $GITHUB_ENV
-          fi
-
-    outputs:
-      ec2_outputs: ${{ steps.get-ec2-outputs.outputs.ec2_outputs }}
+       - name: Get EC2 Public IP	
+         id: get-ec2-public-ip	
+         run: |	
+          if [ "$stack_status" = "CREATE_COMPLETE" ]; then	
+            ec2_public_ip=$(aws cloudformation describe-stacks \	
+              --stack-name MainStack \	
+              --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIp'].OutputValue" \	
+              --output text)	
+            echo "::set-output name=ec2_public_ip::$ec2_public_ip"	
+          fi	
+    outputs:	
+      ec2_public_ip: ${{ steps.get-ec2-public-ip.outputs.ec2_public_ip }}
