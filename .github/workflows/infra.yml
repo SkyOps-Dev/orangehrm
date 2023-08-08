@@ -21,10 +21,6 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
-
-       - name: Fetch Main Stack Template
-         run: |
-            aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
      
        - name: Check if Main Stack Exists
          id: check-stack
