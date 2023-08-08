@@ -1,9 +1,10 @@
 name: OrangeHrm CI/CD
 
 on:
-  push:
-    branches:
-        - 5.1-EC2-Docker
+  workflow_run:
+    workflows: ["Deploy Infrastructure"]
+    types: 
+      - completed
 jobs: 
   SSH-into-instance:
     runs-on: ubuntu-latest
@@ -11,11 +12,16 @@ jobs:
        - name: Checkout Repository
          uses: actions/checkout@v2
 
+       - name: Set REMOTE_HOST using EC2 Public IP
+         run: |
+          REMOTE_HOST="${{ needs.deploy.outputs.ec2_public_ip }}"
+          echo "REMOTE_HOST=$REMOTE_HOST" >> $GITHUB_ENV
+       
        - uses: actions/checkout@v3
        - name: SSH into EC2 Intance
          env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.PUBLIC_HOST_DNS }}
+          REMOTE_HOST: ${{ env.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
          run: |
           mkdir -p ~/.ssh
@@ -44,7 +50,7 @@ jobs:
        - name: Deploy Application & Database
          env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.PUBLIC_HOST_DNS }}
+          REMOTE_HOST: ${{ env.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
          run: |
           mkdir -p ~/.ssh
