@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["Deploy Infrastructure"]
     types: 
-      - completed
+      - completed 
 jobs: 
   SSH-into-instance:
     runs-on: ubuntu-latest
