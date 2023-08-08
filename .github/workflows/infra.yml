@@ -55,12 +55,20 @@ jobs:
        - name: Deploy ec2 Stack
          if: steps.check-ec2-stack.outputs.ec2_stack_status == 'NOT_FOUND'
          run: |
+          vpc_outputs=$(aws cloudformation describe-stacks --stack-name VpcStack --query "Stacks[0].Outputs" --output json)
+          vpc_id=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "VpcId") | .OutputValue')
+          security_group=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "WebServerSecurityGroup") | .OutputValue')
+          public_subnet1=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "PublicSubnet1") | .OutputValue')
+    
            aws cloudformation create-stack \
-              --stack-name ec2Stack \
-              --template-body file://ec2.yaml \
-              --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-create-complete --stack-name ec2Stack
-           else
+            --stack-name ec2Stack \
+            --template-body file://ec2.yaml \
+            --parameters ParameterKey=VpcId,ParameterValue="$vpc_id" \
+                         ParameterKey=WebServerSecurityGroup,ParameterValue="$security_group" \
+                         ParameterKey=PublicSubnet1,ParameterValue="$public_subnet1" \
+            --capabilities CAPABILITY_NAMED_IAM
+           aws cloudformation wait stack-create-complete --stack-name ec2Stack
+          else
             echo "ec2Stack already exists, skipping deployment."
 
        - name: Get EC2 Public IP	
