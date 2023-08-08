@@ -73,7 +73,7 @@ Resources:
   vpc:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://raw.githubusercontent.com/SkyOps-Dev/5.1-ec2-docker-infra/vpc.yaml
+      TemplateURL: ./vpc.yaml
       Parameters:
         VpcStackName: !Ref VpcStackName
         VpcCIDR: !Ref VpcCIDR
@@ -86,7 +86,7 @@ Resources:
   ec2:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://raw.githubusercontent.com/SkyOps-Dev/5.1-ec2-docker-infra/ec2.yaml
+      TemplateURL: ./ec2.yaml
       Parameters:
         VpcId: !GetAtt vpc.Outputs.VpcId
         PublicSubnet1: !GetAtt vpc.Outputs.PublicSubnet1
