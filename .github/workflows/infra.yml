@@ -26,7 +26,7 @@ jobs:
          id: check-vpc-stack
          run: |
             vpc_stack_status=$(aws cloudformation describe-stacks \
-              --stack-name vpc \
+              --stack-name VpcStack \
               --query "Stacks[0].StackStatus" \
               --output text || echo "NOT_FOUND")
             echo "::set-output name=vpc_stack_status::$vpc_stack_status
@@ -36,11 +36,11 @@ jobs:
           vpc_stack_status="${{ steps.check-stack.outputs.stack_status }}"
           if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
-              --stack-name vpc \
+              --stack-name VpcStack \
               --template-body file://vpc.yaml \
               --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
               --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-create-complete --stack-name vpc
+            aws cloudformation wait stack-create-complete --stack-name VpcStack
           else
             echo "VpcStack already exists, skipping deployment."
           fi
@@ -56,7 +56,7 @@ jobs:
 
        - name: Deploy ec2 Stack
          run: |
-          stack_status="${{ steps.check-stack.outputs.stack_status }}"
+          ec2_stack_status="${{ steps.check-stack.outputs.stack_status }}"
           if [ "$stack_status" = "NOT_FOUND" ]; then
             aws cloudformation create-stack \
               --stack-name ec2Stack \
