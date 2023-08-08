@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - 5.1-EC2-Docker
-
 jobs:
   deploy:
     permissions:
