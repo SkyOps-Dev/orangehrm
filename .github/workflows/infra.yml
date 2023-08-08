@@ -59,6 +59,7 @@ jobs:
           vpc_id=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "VpcId") | .OutputValue')
           security_group=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "WebServerSecurityGroup") | .OutputValue')
           public_subnet1=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "PublicSubnet1") | .OutputValue')
+
     
            aws cloudformation create-stack \
             --stack-name ec2Stack \
