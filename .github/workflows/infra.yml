@@ -56,6 +56,10 @@ jobs:
             --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
+
+       - name: List CloudFormation Stacks
+         run: |
+           aws cloudformation list-stacks --query "StackSummaries[].StackName" --output table
           
        - name: Get EC2 Instance Info
          run: |
