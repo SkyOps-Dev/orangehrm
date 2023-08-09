@@ -60,7 +60,7 @@ jobs:
        - name: List CloudFormation Stacks
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
-           echo "::set-output name=ec2_stacks::$ec2_stacks"
+           echo "EC2_STACKS=$ec2_stacks" >> $GITHUB_ENV 
 
        - name: Show EC2 Stacks
          run: |
