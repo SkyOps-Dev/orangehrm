@@ -62,7 +62,7 @@ jobs:
          run: |	
           if [ "$stack_status" = "CREATE_COMPLETE" ]; then	
             ec2_public_ip=$(aws cloudformation describe-stacks \	
-              --stack-name MainStack \	
+              --stack-name MainStack-ec2 \	
               --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIp'].OutputValue" \	
               --output text)	
            echo "Retrieved EC2 Public IP: $ec2_public_ip"
