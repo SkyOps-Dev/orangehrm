@@ -62,15 +62,13 @@ jobs:
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
            echo "::set-output name=ec2_stacks::$ec2_stacks"
            echo ec2stackName == $ec2_stacks
-           
-       - name: Get EC2 Instance Info
-         run: |
-          instance_id=$(aws cloudformation describe-stack-resource --stack-name $ec2_stacks --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
-          ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
-          public_ip=$(echo $ec2_info | jq -r '.PublicIpAddress')
-          public_dns=$(echo $ec2_info | jq -r '.PublicDnsName')
-          echo "Public IP: $public_ip"
-          echo "Public DNS: $public_dns"
+        
+           instance_id=$(aws cloudformation describe-stack-resource --stack-name $ec2_stacks --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
+           ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
+           public_ip=$(echo $ec2_info | jq -r '.PublicIpAddress')
+           public_dns=$(echo $ec2_info | jq -r '.PublicDnsName')
+           echo "Public IP: $public_ip"
+           echo "Public DNS: $public_dns"
 
        - name: Store EC2 Public IP in Parameter Store 
          if: steps.get-ec2-public-ip.outputs.ec2_public_ip != ''
