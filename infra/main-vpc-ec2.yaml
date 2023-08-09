@@ -49,11 +49,11 @@ Parameters:
 ###VPC_END###
 
 ###EC2_START###
-  EC2GeneratedKeyName:
-    Description: The name of the generated EC2 KeyPair.
-    Type: String
-    Default: MyGeneratedKeyMusa
-    ConstraintDescription: Must be the name of the generated EC2 KeyPair.
+  EC2KeyName:
+    Description: The name of an EC2 KeyPair to enable SSH access to the instance.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: musa
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
 
   EC2ImageID:
     Description: The ID of the EC2 image to be used for the instances.
@@ -93,4 +93,4 @@ Resources:
         EC2ImageID: !Ref EC2ImageID
         InstanceType: !Ref InstanceType
         WebServerSecurityGroup: !GetAtt vpc.Outputs.WebServerSecurityGroup
-        EC2GeneratedKeyName: !Ref EC2GeneratedKeyName
+        EC2KeyName: !Ref EC2KeyName
