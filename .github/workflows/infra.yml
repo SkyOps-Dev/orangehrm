@@ -59,7 +59,7 @@ jobs:
 
        - name: List CloudFormation Stacks
          run: |
-           aws cloudformation list-stacks --query "StackSummaries[].StackName" --output table
+           aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='CREATE_COMPLETE'].StackName" --output table
           
        - name: Get EC2 Instance Info
          run: |
