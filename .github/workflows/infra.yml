@@ -63,7 +63,7 @@ jobs:
           if [ "$stack_status" = "CREATE_COMPLETE" ]; then	
             ec2_instance_id=$(aws cloudformation describe-stacks \	
               --stack-name MainStack \	
-              --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIp'].OutputValue" \	
+              --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" \	
               --output text)
              ec2_public_ip=$(aws ec2 describe-instances \
               --instance-ids "$ec2_instance_id" \
