@@ -68,6 +68,9 @@ jobs:
             echo "::set-output name=ec2_public_ip::$ec2_public_ip"
           fi
 
+       - name: Debug Condition
+         run: echo "Condition: ${{ steps.get-ec2-public-ip.outputs.ec2_public_ip }}"
+
        - name: Store EC2 Public IP in Parameter Store
          if: steps.get-ec2-public-ip.outputs.ec2_public_ip != ''
          run: |
