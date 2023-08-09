@@ -90,7 +90,6 @@ Resources:
       Parameters:
         VpcId: !GetAtt vpc.Outputs.VpcId
         PublicSubnet1: !GetAtt vpc.Outputs.PublicSubnet1
-        EC2KeyName: !Ref EC2KeyName
         EC2ImageID: !Ref EC2ImageID
         InstanceType: !Ref InstanceType
         WebServerSecurityGroup: !GetAtt vpc.Outputs.WebServerSecurityGroup
