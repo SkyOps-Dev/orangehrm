@@ -65,8 +65,6 @@ jobs:
            
        - name: Get EC2 Instance Info
          run: |
-          ec2_stacks="${{ steps.ec2-stacks.outputs.ec2_stacks }}"
-          stack_names=$(echo "${ec2_stacks}" | jq -r '.[]')
           instance_id=$(aws cloudformation describe-stack-resource --stack-name $ec2_stacks --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
           ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
           public_ip=$(echo $ec2_info | jq -r '.PublicIpAddress')
