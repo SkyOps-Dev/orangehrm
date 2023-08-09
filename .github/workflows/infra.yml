@@ -74,4 +74,5 @@ jobs:
 
        - name: Store EC2 Public IP in Parameter Store 
          run: |
-              aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
+          echo "Public IP: $public_ip"
+          aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
