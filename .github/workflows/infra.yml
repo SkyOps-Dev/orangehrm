@@ -21,59 +21,50 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
-     
-       - name: Check if VpcStack Exists
-         id: check-vpc-stack
+
+       - name: Create S3 Bucket
          run: |
-          vpc_stack_status=$(aws cloudformation describe-stacks \
-            --stack-name VpcStack \
+           aws s3api create-bucket --bucket cfn-template09 --acl private --region us-east-1
+
+       - name: Upload Files to S3 Bucket
+         run: |
+           aws s3 cp ./infra/* s3://cfn-template09/ --recursive --acl private
+
+       - name: Check List of file into S3 Bucket
+         run: |
+           aws s3 ls s3://cfn-template09/ 
+
+       - name: Fetch Main Stack Template
+         run: |
+           aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
+     
+       - name: Check if Main Stack Exists
+         id: main-stack
+         run: |
+          stack_status=$(aws cloudformation describe-stacks \
+            --stack-name MainStack \
             --query "Stacks[0].StackStatus" \
             --output text || echo "NOT_FOUND")
-          echo "::set-output name=vpc_stack_status::$vpc_stack_status"
-       - name: Deploy VPC Stack
-         if: steps.check-vpc-stack.outputs.vpc_stack_status == 'NOT_FOUND'
+          echo "::set-output name=stack_status::$stack_status"
+
+       - name: Deploy Main Stack
+         if: steps.main-stack.outputs.stack_status == 'NOT_FOUND'
          run: |
           aws cloudformation create-stack \
-            --stack-name VpcStack \
-            --template-body file://vpc.yaml \
+            --stack-name MainStack \
+            --template-body file://main-vpc-ec2.yaml \
             --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
             --capabilities CAPABILITY_NAMED_IAM
-          aws cloudformation wait stack-create-complete --stack-name VpcStack
+          aws cloudformation wait stack-create-complete --stack-name MainStack
           
-       - name: Check if ec2Stack Exists
-         id: check-ec2-stack
-         run: |
-          ec2_stack_status=$(aws cloudformation describe-stacks \
-            --stack-name ec2Stack \
-            --query "Stacks[0].StackStatus" \
-            --output text || echo "NOT_FOUND")
-          echo "::set-output name=ec2_stack_status::$ec2_stack_status"
-       - name: Deploy ec2 Stack
-         if: steps.check-ec2-stack.outputs.ec2_stack_status == 'NOT_FOUND'
-         run: |
-          vpc_outputs=$(aws cloudformation describe-stacks --stack-name VpcStack --query "Stacks[0].Outputs" --output json)
-          vpc_id=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "VpcId") | .OutputValue')
-          security_group=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "WebServerSecurityGroup") | .OutputValue')
-          public_subnet1=$(echo "$vpc_outputs" | jq -r '.[] | select(.OutputKey == "PublicSubnet1") | .OutputValue')
-    
-           aws cloudformation create-stack \
-            --stack-name ec2Stack \
-            --template-body file://ec2.yaml \
-            --parameters ParameterKey=VpcId,ParameterValue="$vpc_id" \
-                         ParameterKey=WebServerSecurityGroup,ParameterValue="$security_group" \
-                         ParameterKey=PublicSubnet1,ParameterValue="$public_subnet1" \
-            --capabilities CAPABILITY_NAMED_IAM
-           aws cloudformation wait stack-create-complete --stack-name ec2Stack
-
        - name: Get EC2 Public IP	
          id: get-ec2-public-ip	
          run: |	
-          if [ "$stack_status" = "CREATE_COMPLETE" ]; then	
             ec2_public_ip=$(aws cloudformation describe-stacks \	
               --stack-name ec2Stack \	
               --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIp'].OutputValue" \	
               --output text)	
             echo "EC2_PUBLIC_IP=$ec2_public_ip" >> $GITHUB_ENV
-          fi
+            
     outputs:
       ec2_public_ip: ${{ steps.get-ec2-public-ip.outputs.ec2_public_ip }}
