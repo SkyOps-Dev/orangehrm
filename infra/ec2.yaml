@@ -38,7 +38,7 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       ImageId: !Ref EC2ImageID
-      KeyName: !Ref EC2GeneratedKeyName
+      KeyName: !Ref EC2KeyName
       SecurityGroupIds: 
           - !Ref WebServerSecurityGroup
       SubnetId: !Ref PublicSubnet1
