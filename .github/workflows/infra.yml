@@ -57,7 +57,7 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
-       - name: List CloudFormation Stacks
+       - name: List CloudFormation Stacks 
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
            ec2_stacks=$(echo "$ec2_stacks" | jq -r '.[]')
@@ -71,8 +71,4 @@ jobs:
            echo "Public IP: $public_ip"
            echo "Public DNS: $public_dns"
            
-
-       - name: Store EC2 Public IP in Parameter Store 
-         run: |
-          echo "Public IP: $public_ip"
-          aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
+           aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
