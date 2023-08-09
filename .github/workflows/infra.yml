@@ -73,10 +73,5 @@ jobs:
            
 
        - name: Store EC2 Public IP in Parameter Store 
-         if: steps.get-ec2-public-ip.outputs.ec2_public_ip != ''
          run: |
-          aws ssm put-parameter \
-            --name EC2PublicIP \
-            --value ${{ steps.get-ec2-public-ip.outputs.ec2_public_ip }} \
-            --type String \
-            --overwrite
+              aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
