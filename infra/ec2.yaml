@@ -26,11 +26,11 @@ Parameters:
     Description: Security Group ID for the web server.
     Type: String
 
-  EC2GeneratedKeyName:
-    Description: The name of the generated EC2 KeyPair.
-    Type: String
-    Default: MyGeneratedKeyMusa
-    ConstraintDescription: Must be the name of the generated EC2 KeyPair.
+  EC2KeyName:
+    Description: The name of an EC2 KeyPair to enable SSH access to the instance.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: musa
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
   
 Resources:
   MyEC2Instance:
@@ -55,7 +55,3 @@ Outputs:
   InstancePublicIp:
     Description: Public IP address of the EC2 instance
     Value: !GetAtt MyEC2Instance.PublicIp
-  KeyGenerated:
-    Description: Key pair for this instance
-    Value: !Ref EC2GeneratedKeyName 
-
