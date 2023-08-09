@@ -61,8 +61,15 @@ jobs:
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
            echo "::set-output name=ec2_stacks::$ec2_stacks"
+
+
+       - name: Get ARN of Specific Stack
+         run: |
+          selected_stack=$(echo "${{ steps.list_stacks.outputs.ec2_stacks }}" | jq -r '.[0]')  # Assuming you want the first stack in the list
+          stack_arn=$(aws cloudformation describe-stacks --stack-name "$selected_stack" --query "Stacks[0].StackId" --output text)
+          echo "Selected Stack ARN: $stack_arn"
                 
-           instance_id=$(aws cloudformation describe-stack-resource --stack-name "$ec2_stacks" --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
+           instance_id=$(aws cloudformation describe-stack-resource --stack-name $stack_arn --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
            ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
            public_ip=$(echo $ec2_info | jq -r '.PublicIpAddress')
            public_dns=$(echo $ec2_info | jq -r '.PublicDnsName')
