@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  VpcId:
+    Description: The VPC ID
+    Type: String
+  
+  PublicSubnet1:
+    Description: The ID of public subnet 1
+    Type: String
+
+  EC2KeyName:
+    Description: The name of an EC2 KeyPair to enable SSH access to the instance.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: musa
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+
+  EC2ImageID:
+    Description: The ID of the EC2 image to be used for the instances.
+    Type: String
+    Default: ami-053b0d53c279acc90
+
+  InstanceType:
+    Description: Web servers EC2 Instance Type.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+    ConstraintDescription: Must be a valid EC2 Instance Type.
+
+  WebServerSecurityGroup:
+    Description: Security Group ID for the web server.
+    Type: String
+  
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref EC2ImageID
+      KeyName: !Ref EC2KeyName
+      SecurityGroupIds: 
+          - !Ref WebServerSecurityGroup
+      SubnetId: !Ref PublicSubnet1
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          echo "Hello, EC2!"
+
+      Tags:
+        - Key: Name
+          Value: orange-hrm-docker
+
+Outputs:
+  InstancePublicIp:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt MyEC2Instance.PublicIp
+
