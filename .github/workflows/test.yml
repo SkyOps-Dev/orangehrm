@@ -32,15 +32,10 @@ jobs:
          run: |
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
-          
-       - name: Prepare private key
-         run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 400 private_key.pem
-                 
+                
        - name: SSH into EC2 Instance
          env:
-          PRIVATE_KEY_PATH: ./private_key.pem
+          PRIVATE_KEY_PATH:  ${{ steps.get-ssh-key.outputs.private-key }}
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
