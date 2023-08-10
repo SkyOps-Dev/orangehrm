@@ -36,7 +36,7 @@ jobs:
           
        - name: Set up SSH
          run: |
-          echo "$PRIVATE_KEY" > private_key.pem
+          sudo echo "$PRIVATE_KEY" > private_key.pem
           eval "$(ssh-agent -s)"
           ssh-add private_key.pem
 
