@@ -26,6 +26,11 @@ jobs:
          run: |
           SSH_PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
           echo "::set-output name=ssh_private_key::$SSH_PRIVATE_KEY"
+          
+       - name: Print SSH private key
+         run: |
+          echo "SSH private key: ${{ steps.get-ssh-key.outputs.ssh_private_key }}"
+          
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
          run: |
