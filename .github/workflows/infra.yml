@@ -24,7 +24,7 @@ jobs:
                       
        - name: Check if private key exists in Parameter Store
          run: |
-          KEY_EXISTS=$(aws ssm describe-parameters --names "private-key" --query "Parameters[0].Name" --output text || echo "false")
+          KEY_EXISTS=$(aws ssm describe-parameters --name "private-key" --query "Parameters[0].Name" --output text || echo "false")
           if [ "$KEY_EXISTS" == "false" ]; then
             # Key not present in Parameter Store, generate the key and store it
             aws ec2 create-key-pair --key-name skyops-ms --query 'KeyMaterial' --output text > skyops-ms.pem
