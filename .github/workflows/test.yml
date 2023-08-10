@@ -33,27 +33,18 @@ jobs:
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
           
-       - name: Debug Private Key and Remote Host
+       - name: Prepare private key
          run: |
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ls -l ~/.ssh/
-          echo "Private key length: ${#PRIVATE_KEY}"
-          echo "First few characters of the key: ${PRIVATE_KEY:0:10}"
-          echo "Last few characters of the key: ${PRIVATE_KEY: -10}"
-                   
-       - name: SSH into EC2 Intance
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 400 private_key.pem
+                 
+       - name: SSH into EC2 Instance
          env:
-          PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.private_key }}
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
+          PRIVATE_KEY_PATH: private_key.pem
+          REMOTE_HOST: ${{ steps.get-public-ip.outputs.public_ip }}
           REMOTE_USER: ubuntu
          run: |
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+           (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
