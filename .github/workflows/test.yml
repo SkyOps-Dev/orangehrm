@@ -37,12 +37,14 @@ jobs:
           
        - name: SSH into EC2 Instance
          env:
-          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.private_key }}
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
+          PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
+          echo "Retrieved Private Key:"
+          echo "$PRIVATE_KEY"
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           cat ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
