@@ -38,7 +38,8 @@ jobs:
          run: |
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          cat ~/.ssh/id_rsa 
+          chmod 400 ~/.ssh/id_rsa
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
 
        - name: SSH into EC2 Instance
