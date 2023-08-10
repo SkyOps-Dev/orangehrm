@@ -33,11 +33,16 @@ jobs:
          run: |
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
-                
+          
+       - name: Set up SSH
+         run: |
+          chmod 600 ${{ steps.get-ssh-key.outputs.private_key }}
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${{ steps.get-ssh-key.outputs.private_key }}"
+
        - name: SSH into EC2 Instance
          run: |
-           chmod 600 $PRIVATE_KEY
-           (sudo ssh -i $PRIVATE_KEY ubuntu@$REMOTE_HOST '
+          ssh -o StrictHostKeyChecking=no -i ${{ steps.get-ssh-key.outputs.private_key }} ubuntu@$REMOTE_HOST '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
