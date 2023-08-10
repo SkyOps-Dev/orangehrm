@@ -34,12 +34,12 @@ jobs:
                 
        - name: SSH into EC2 Instance
          env:
-          PRIVATE_KEY:  ${{ steps.get-ssh-key.outputs.private-key }}
+          SS_PRIVATE_KEY:  ${{ steps.get-ssh-key.outputs.private-key }}
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
           mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "$SS_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
            (sudo ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" ubuntu@$REMOTE_HOST '
