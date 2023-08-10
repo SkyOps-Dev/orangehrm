@@ -24,7 +24,7 @@ jobs:
              
        - name: Generate key pair
          run: |
-          aws ec2 create-key-pair --key-name skyops-ms --query 'KeyMaterial' --output text > MyKeyPair.pem
+          aws ec2 create-key-pair --key-name skyops-ms --query 'KeyMaterial' --output text > skyops-ms.pem
           chmod 400 skyops-ms.pem
 
        - name: Store key in Parameter Store
