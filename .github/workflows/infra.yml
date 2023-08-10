@@ -27,18 +27,26 @@ jobs:
           KEY_PAIR_NAME="skyops-ms"
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
             echo "Key pair '$KEY_PAIR_NAME' already exists"
+            KEY_ALREADY_EXISTS="true"
           else
             # Key pair does not exist, create it
             PRIVATE_KEY_FILE="skyops-ms.pem"
             aws ec2 create-key-pair --key-name "$KEY_PAIR_NAME" --query 'KeyMaterial' --output text > "$PRIVATE_KEY_FILE"
             chmod 400 "$PRIVATE_KEY_FILE"
+            KEY_ALREADY_EXISTS="false"
             echo "Created key pair '$KEY_PAIR_NAME' successfully"
           fi
+          
        - name: Store key in Parameter Store
          run: |
           KEY_PAIR_NAME="skyops-ms"
           PRIVATE_KEY_FILE="skyops-ms.pem"
-          aws ssm put-parameter --name "private-key" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
+          if [ "$KEY_ALREADY_EXISTS" != "true" ]; then
+            aws ssm put-parameter --name "private-key" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
+            echo "Stored key in Parameter Store"
+          else
+            echo "Key pair already exists, not storing in Parameter Store"
+          fi
 
        - name: Create S3 Bucket
          if: success()
