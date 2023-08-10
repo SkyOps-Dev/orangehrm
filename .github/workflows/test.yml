@@ -33,16 +33,15 @@ jobs:
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
           
-       - name: Debug Private Key
+       - name: Debug Private Key and Remote Host
          run: |
+          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ls -l ~/.ssh/
           echo "Private key length: ${#PRIVATE_KEY}"
           echo "First few characters of the key: ${PRIVATE_KEY:0:10}"
           echo "Last few characters of the key: ${PRIVATE_KEY: -10}"
-
-       - name: Debug Remote Host
-         run: |
-          echo "Remote host: $REMOTE_HOST"
-          
+                   
        - name: SSH into EC2 Intance
          env:
           PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.private_key }}
