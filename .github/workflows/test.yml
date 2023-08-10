@@ -42,7 +42,7 @@ jobs:
          run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 400 private_key.pem
-          (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
