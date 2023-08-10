@@ -41,7 +41,7 @@ jobs:
           REMOTE_USER: ubuntu
          run: |
            chmod 400 $PRIVATE_KEY
-          (sudo ssh -i $PRIVATE_KEY ubuntu@$REMOTE_HOST '
+           (sudo ssh -i $PRIVATE_KEY ubuntu@$REMOTE_HOST '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
