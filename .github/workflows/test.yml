@@ -25,6 +25,7 @@ jobs:
          id: get-ssh-key
          run: |
           PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
+          echo "::set-output name=private-key::$PRIVATE_KEY" 
           echo "Retrieved Private Key:"
           echo "$PRIVATE_KEY"
           
@@ -36,7 +37,7 @@ jobs:
           
        - name: SSH into EC2 Instance
          env:
-          SSH_PRIVATE_KEY: $PRIVATE_KEY 
+          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.private_key }}
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
