@@ -24,12 +24,9 @@ jobs:
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
-          SSH_PRIVATE_KEY_BASE64=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
-          SSH_PRIVATE_KEY=$(echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d)
-
-          # Print the decoded SSH private key
-          echo "SSH private key:"
-          echo "$SSH_PRIVATE_KEY"
+          aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text > private_key.pem
+          cat private_key.pem
+          chmod 400 private_key.pem
           
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
