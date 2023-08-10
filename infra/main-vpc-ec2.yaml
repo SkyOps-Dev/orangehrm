@@ -52,7 +52,7 @@ Parameters:
   EC2KeyName:
     Description: The name of an EC2 KeyPair to enable SSH access to the instance.
     Type: AWS::EC2::KeyPair::KeyName
-    Default: musa
+    Default: skyops-ms
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
 
   EC2ImageID:
