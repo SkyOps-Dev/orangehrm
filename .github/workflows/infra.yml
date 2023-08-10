@@ -42,7 +42,7 @@ jobs:
        - name: Store key in Parameter Store
          if: steps.generate-key.outputs.key_generated == 'true'
          run: |
-          aws ssm put-parameter --name "private-key" --value file://skyops-ms.pem --type SecureString
+          aws ssm put-parameter --name "private-key" --value file://skyops-ms.pem --type String
 
        - name: Create S3 Bucket
          run: |
