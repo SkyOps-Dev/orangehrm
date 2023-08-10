@@ -21,7 +21,6 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
              
-             
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
@@ -34,7 +33,6 @@ jobs:
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
           
-       - uses: actions/checkout@v3
        - name: SSH into EC2 Intance
          env:
           PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.private_key }}
