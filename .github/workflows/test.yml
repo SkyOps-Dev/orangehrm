@@ -24,7 +24,7 @@ jobs:
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
-          SSH_PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text | tr -d '\r' | tr -d '\n')
+          SSH_PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text > $file.pem )
           echo "::set-output name=ssh_private_key::$SSH_PRIVATE_KEY"
           
        - name: Print SSH private key
