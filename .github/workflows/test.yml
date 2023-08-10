@@ -6,6 +6,9 @@ on:
         - 5.1-EC2-Docker
 jobs: 
   SSH-into-instance:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
        - name: Checkout Repository
