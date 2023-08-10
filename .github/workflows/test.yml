@@ -24,8 +24,8 @@ jobs:
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
-          aws ssm get-parameter --name "private-key" --with-decryption --query "Parameter.Value" --output text > $file.pem
-          chmod 400 $file.pem
+          aws ssm get-parameter --name "private-key" --with-decryption --query "Parameter.Value" --output text > private_key.pem
+          chmod 400 private_key.pem
           
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
@@ -39,7 +39,7 @@ jobs:
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
-           (ssh -i $file.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+           (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
