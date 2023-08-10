@@ -35,12 +35,8 @@ jobs:
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
                 
        - name: SSH into EC2 Instance
-         env:
-          SS_PRIVATE_KEY:  ${{ steps.get-ssh-key.outputs.private-key }}
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
-          REMOTE_USER: ubuntu
          run: |
-           chmod 400 $PRIVATE_KEY
+           chmod 600 $PRIVATE_KEY
            (sudo ssh -i $PRIVATE_KEY ubuntu@$REMOTE_HOST '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
