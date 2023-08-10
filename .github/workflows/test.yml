@@ -41,10 +41,11 @@ jobs:
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 400 private_key.pem
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
