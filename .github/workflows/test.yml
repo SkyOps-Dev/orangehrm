@@ -44,11 +44,11 @@ jobs:
           echo "Retrieved Private Key:"
           echo "$PRIVATE_KEY"
           mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          cat ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key
+          cat ~/.ssh/private_key
+          chmod 600 ~/.ssh/private_key
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
@@ -74,10 +74,10 @@ jobs:
           REMOTE_USER: ubuntu
          run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key
+          chmod 600 ~/.ssh/private_key
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             cd orangehrm
             sudo docker compose up -d
             sudo docker ps
