@@ -22,12 +22,25 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
              
-       - name: Generate key pair
+       - name: Check if parameter exists
+         id: check-parameter
+         run: |
+          if aws ssm describe-parameters --query "Parameters[?Name=='private-key']" --output text; then
+            echo "::set-output name=parameter_exists::true"
+          else
+            echo "::set-output name=parameter_exists::false"
+          fi
+             
+       - name: Generate and store key
+         id: generate-key
+         if: steps.check-parameter.outputs.parameter_exists == 'false'
          run: |
           aws ec2 create-key-pair --key-name skyops-ms --query 'KeyMaterial' --output text > skyops-ms.pem
           chmod 400 skyops-ms.pem
+          echo "::set-output name=key_generated::true"
 
        - name: Store key in Parameter Store
+         if: steps.generate-key.outputs.key_generated == 'true'
          run: |
           aws ssm put-parameter --name "private-key" --value file://skyops-ms.pem --type SecureString
 
@@ -41,7 +54,7 @@ jobs:
 
        - name: Check List of file into S3 Bucket
          run: |
-           aws s3 ls s3://cfn-template09/musa
+           aws s3 ls s3://cfn-template09/
 
        - name: Fetch Main Stack Template
          run: |
