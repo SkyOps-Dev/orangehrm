@@ -10,13 +10,32 @@ jobs:
     steps:
        - name: Checkout Repository
          uses: actions/checkout@v2
+         
+       - name: Set up AWS CLI
+         uses: aws-actions/configure-aws-credentials@v2
+         with:
+             role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+             role-duration-seconds: 3600
+             aws-region: us-east-1
+             
+       - name: Get SSH private key from Parameter Store
+         id: get-ssh-key
+         run: |
+          SSH_PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
+          echo "::set-output name=ssh_private_key::$SSH_PRIVATE_KEY"
 
+       - name: Get public IP (DNS) from Parameter Store
+         id: get-public-ip
+         run: |
+          REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
+          echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST"    
+         
        - uses: actions/checkout@v3
        - name: SSH into EC2 Intance
          env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.PUBLIC_HOST_DNS }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
+          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.ssh_private_key }}
+          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
+          REMOTE_USER: ubuntu
          run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
@@ -43,9 +62,9 @@ jobs:
           
        - name: Deploy Application & Database
          env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.PUBLIC_HOST_DNS }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
+          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.ssh_private_key }}
+          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
+          REMOTE_USER: ubuntu
          run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
