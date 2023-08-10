@@ -24,12 +24,8 @@ jobs:
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
-          SSH_PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text > $file.pem )
-          echo "::set-output name=ssh_private_key::$SSH_PRIVATE_KEY"
-          
-       - name: Print SSH private key
-         run: |
-          echo "SSH private key: ${{ steps.get-ssh-key.outputs.ssh_private_key }}"
+          aws ssm get-parameter --name "private-key" --with-decryption --query "Parameter.Value" --output text > $file.pem
+          chmod 400 $file.pem
           
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
@@ -40,13 +36,10 @@ jobs:
        - uses: actions/checkout@v3
        - name: SSH into EC2 Intance
          env:
-          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.ssh_private_key }}
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 400 private_key.pem
-          (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+           (ssh -i $file.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
