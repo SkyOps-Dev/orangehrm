@@ -26,6 +26,7 @@ jobs:
          run: |
           PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
           echo "::set-output name=private_key::$PRIVATE_KEY"
+          echo "$PRIVATE_KEY"
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
          run: |
