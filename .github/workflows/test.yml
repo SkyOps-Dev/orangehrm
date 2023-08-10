@@ -24,7 +24,8 @@ jobs:
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
-          aws ssm get-parameter --name "private-key" --with-decryption --query "Parameter.Value" --output text > private_key.pem
+          aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text > private_key.pem
+          echo "private_key.pem"
           chmod 400 private_key.pem
           
        - name: Get public IP (DNS) from Parameter Store
