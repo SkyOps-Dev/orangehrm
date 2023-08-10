@@ -34,19 +34,17 @@ jobs:
           REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
           echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
           
-       - name: Prepare private key
+       - uses: actions/checkout@v3
+       - name: SSH into EC2 Intance
+         env:
+          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.ssh_private_key }}
+          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
+          REMOTE_USER: ubuntu
          run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 400 private_key.pem
-          cat private_key.pem  # For troubleshooting purposes, check the key content
-
-       - name: SSH into EC2 Instance
-         env:
-          PRIVATE_KEY_PATH: private_key.pem
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.public_ip }}
-          REMOTE_USER: ubuntu
-         run: |
-           (ssh -i $PRIVATE_KEY_PATH -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
+          (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
