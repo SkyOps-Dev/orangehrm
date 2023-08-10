@@ -38,7 +38,7 @@ jobs:
          run: |
           KEY_PAIR_NAME="skyops-ms"
           PRIVATE_KEY_FILE="skyops-ms.pem"
-          aws ssm put-parameter --name "private-key" --value fileb://"$PRIVATE_KEY_FILE" --type String --overwrite
+          aws ssm put-parameter --name "private-key" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
 
        - name: Create S3 Bucket
          if: success()
