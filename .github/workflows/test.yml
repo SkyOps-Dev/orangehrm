@@ -36,7 +36,7 @@ jobs:
           
        - name: Set up SSH
          run: |
-          echo "$PRIVATE_KEY" > private_key.pem
+          echo "${{PRIVATE_KEY}}" > private_key.pem
           chmod 400 private_key.pem
           ls -l private_key.pem
           cat private_key.pem
