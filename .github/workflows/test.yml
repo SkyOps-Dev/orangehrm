@@ -41,7 +41,7 @@ jobs:
        - name: SSH into EC2 Instance
          env:
           PRIVATE_KEY_PATH: private_key.pem
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.public_ip }}
+          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
            (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
