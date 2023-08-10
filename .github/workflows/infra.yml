@@ -21,11 +21,7 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
-             
-       - name: Check if parameter exists
-         run: |
-          aws ssm describe-parameters --query "Parameters[?Name=='private-key']" --output text; then
-          
+                      
              
        - name: Generate and store key
         
