@@ -21,6 +21,7 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
              
+             
        - name: Get SSH private key from Parameter Store
          id: get-ssh-key
          run: |
