@@ -27,6 +27,7 @@ jobs:
           PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
           echo "::set-output name=private_key::$PRIVATE_KEY"
           echo "$PRIVATE_KEY"
+          
        - name: Get public IP (DNS) from Parameter Store
          id: get-public-ip
          run: |
@@ -39,11 +40,8 @@ jobs:
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
-          mkdir -p ~/.ssh
-          echo "$SS_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-           (sudo ssh -i ~/.ssh/id_rsa -o "StrictHostKeyChecking=no" ubuntu@$REMOTE_HOST '
+           chmod 400 $PRIVATE_KEY
+          (sudo ssh -i $PRIVATE_KEY ubuntu@$REMOTE_HOST '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
