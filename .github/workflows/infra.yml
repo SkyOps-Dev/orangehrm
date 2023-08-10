@@ -22,20 +22,25 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
                       
-       - name: Check if private key exists in Parameter Store
+       - name: Check if key pair exists
          run: |
-          KEY_EXISTS=$(aws ssm describe-parameters --name "private-key" --query "Parameters[0].Name" --output text || echo "false")
-          if [ "$KEY_EXISTS" == "false" ]; then
-            # Key not present in Parameter Store, generate the key and store it
+          KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-names skyops-ms --query "KeyPairs[0].KeyName" --output text || echo "false")
+          if [ "$KEY_PAIR_EXISTS" == "false" ]; then
+            # Key pair does not exist, create it
             aws ec2 create-key-pair --key-name skyops-ms --query 'KeyMaterial' --output text > skyops-ms.pem
             chmod 400 skyops-ms.pem
-            aws ssm put-parameter --name "private-key" --value file://skyops-ms.pem --type String
           else
-            # Key already present in Parameter Store, nothing to do
-            echo "Private key already exists in Parameter Store"
+            # Key pair already exists, nothing to do
+            echo "Key pair 'skyops-ms' already exists"
           fi
+       - name: Store key in Parameter Store
+         if: success()  # Only run this step if the previous step was successful
+         run: |
+          # Store the key in Parameter Store
+          aws ssm put-parameter --name "private-key" --value file://skyops-ms.pem --type String
 
        - name: Create S3 Bucket
+         if: success()
          run: |
            aws s3api create-bucket --bucket cfn-template09 --acl private --region us-east-1
 
