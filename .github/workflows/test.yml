@@ -44,7 +44,7 @@ jobs:
           REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
           REMOTE_USER: ubuntu
          run: |
-           (ssh -i private_key.pem -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
+           (sudo ssh -i private_key.pem -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
