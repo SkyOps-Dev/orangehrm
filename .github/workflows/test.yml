@@ -30,7 +30,7 @@ jobs:
 
        - name: Retrieve Private Key from Parameter Store
          run: |
-          PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
+          PRIVATE_KEY=$(aws ssm get-parameter --name --with-decryption "private-key" --query "Parameter.Value" --output text)
           echo "Retrieved Private Key:"
           echo "$PRIVATE_KEY"
           mkdir -p ~/.ssh
