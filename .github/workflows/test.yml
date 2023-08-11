@@ -20,25 +20,15 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
-             
-       - name: Get SSH private key from Parameter Store
-         id: get-ssh-key
-         run: |
-          PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
-          echo "::set-output name=private-key::$PRIVATE_KEY" 
-          echo "Retrieved Private Key:"
-          echo "$PRIVATE_KEY"
           
-       - name: Get public IP (DNS) from Parameter Store
-         id: get-public-ip
+       - name: Retrieve Public IP from Parameter Store
          run: |
-          REMOTE_HOST=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
-          echo "::set-output name=MyPublicIPAddress::$REMOTE_HOST" 
-          
-       - name: SSH into EC2 Instance
-         env:
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
-          REMOTE_USER: ubuntu
+          PUBLIC_IP=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
+          echo "Retrieved Public IP:"
+          echo "$PUBLIC_IP"
+          echo "REMOTE_HOST=$PUBLIC_IP" >> $GITHUB_ENV
+
+       - name: Retrieve Private Key from Parameter Store
          run: |
           PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
           echo "Retrieved Private Key:"
@@ -47,8 +37,13 @@ jobs:
           echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key
           cat ~/.ssh/private_key
           chmod 600 ~/.ssh/private_key
+
+       - name: SSH into EC2 Instance
+         run: |
+          REMOTE_HOST=$REMOTE_HOST
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
+            echo "Connected to the instance."
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
             git checkout remotes/origin/5.1-EC2-Docker
