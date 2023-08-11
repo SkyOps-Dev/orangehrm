@@ -41,13 +41,19 @@ jobs:
          run: |
            KEY_PAIR_NAME="skyops-ms"
            PARAMETER_NAME="private-key"
-           if aws ssm describe-parameters --names "$PARAMETER_NAME" --query "Parameters[0].Name" --output text; then
+    
+           if aws ssm get-parameter --name "$PARAMETER_NAME" --query "Parameter.Name" --output text; then
            echo "Key '$PARAMETER_NAME' already exists in Parameter Store"
            else
-            # Key does not exist in Parameter Store, put it there
+         
            PRIVATE_KEY_FILE="skyops-ms.pem"
-           aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type SecureString --overwrite
+           if [ -f "$PRIVATE_KEY_FILE" ]; then
+           aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
            echo "Stored key in Parameter Store"
+           else
+           echo "Private key file '$PRIVATE_KEY_FILE' not found"
+           exit 1
+           fi
            fi
 
        - name: Create S3 Bucket
