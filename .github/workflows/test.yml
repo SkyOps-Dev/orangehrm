@@ -63,16 +63,10 @@ jobs:
            ')
           
        - name: Deploy Application & Database
-         env:
-          SSH_PRIVATE_KEY: ${{ steps.get-ssh-key.outputs.ssh_private_key }}
-          REMOTE_HOST: ${{ steps.get-public-ip.outputs.MyPublicIPAddress }}
-          REMOTE_USER: ubuntu
          run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key
-          chmod 600 ~/.ssh/private_key
+          REMOTE_HOST=$REMOTE_HOST
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_HOST" '
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
             cd orangehrm
             sudo docker compose up -d
             sudo docker ps
