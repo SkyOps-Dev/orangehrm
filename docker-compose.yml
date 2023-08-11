@@ -13,6 +13,8 @@ services:
       MYSQL_PASSWORD: orange1
     ports:
       - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
 
   # Your Application Container
   app:
@@ -25,3 +27,9 @@ services:
       - mysql
     ports:
       - "8080:80"
+    volumes:
+      - app-data:/var/www/html
+
+volumes:
+  mysql-data:
+  app-data:
