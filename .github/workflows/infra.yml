@@ -37,16 +37,18 @@ jobs:
             echo "Created key pair '$KEY_PAIR_NAME' successfully"
           fi
           
-       - name: Store key in Parameter Store
+       - name: Check if key exists in Parameter Store
          run: |
-          KEY_PAIR_NAME="skyops-ms"
-          PRIVATE_KEY_FILE="skyops-ms.pem"
-          if [ "$KEY_ALREADY_EXISTS" != "true" ]; then
-            aws ssm put-parameter --name "private-key" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
-            echo "Stored key in Parameter Store"
-          else
-            echo "Key pair already exists, not storing in Parameter Store"
-          fi
+           KEY_PAIR_NAME="skyops-ms"
+           PARAMETER_NAME="private-key"
+           if aws ssm describe-parameters --names "$PARAMETER_NAME" --query "Parameters[0].Name" --output text; then
+           echo "Key '$PARAMETER_NAME' already exists in Parameter Store"
+           else
+            # Key does not exist in Parameter Store, put it there
+           PRIVATE_KEY_FILE="skyops-ms.pem"
+           aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type SecureString --overwrite
+           echo "Stored key in Parameter Store"
+           fi
 
        - name: Create S3 Bucket
          if: success()
