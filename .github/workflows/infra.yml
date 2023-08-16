@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - 5.1-ec2-docker-infra
+env:
+  VpcStackName: vpc
+  RoleName: orangehrms3policy
 
 jobs:
   deploy:
@@ -88,7 +91,8 @@ jobs:
           aws cloudformation create-stack \
             --stack-name MainStack \
             --template-body file://main-vpc-ec2.yaml \
-            --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
+            --parameters ParameterKey=VpcStackName,ParameterValue=$VpcStackName \
+            --parameters ParameterKey=RoleName,ParameterValue=$RoleName \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
