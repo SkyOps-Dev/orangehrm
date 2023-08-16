@@ -91,16 +91,13 @@ jobs:
           echo "::set-output name=stack_status::$stack_status"
 
        - name: Deploy Main Stack
-         env:
-          VpcStackName: $VpcStackName
-          RoleName: $RoleName
          if: steps.main-stack.outputs.stack_status == 'NOT_FOUND' 
          run: |
           aws cloudformation create-stack \
             --stack-name MainStack \
             --template-body file://main-vpc-ec2.yaml \
-            --parameters ParameterKey=VpcStackName,ParameterValue=$VpcStackName \
-            --parameters ParameterKey=RoleName,ParameterValue=$RoleName \
+            --parameters ParameterKey=VpcStackName,ParameterValue=${{ env.VpcStackName }} \
+            --parameters ParameterKey=RoleName,ParameterValue=${{ env.RoleName }}  \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
