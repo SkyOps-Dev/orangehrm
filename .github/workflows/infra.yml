@@ -24,6 +24,11 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
+
+       - name: Debug Output
+         run: |
+          echo "VpcStackName: $VpcStackName"
+          echo "RoleName: $RoleName"
                       
        - name: Check if key pair exists
          run: |
