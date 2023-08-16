@@ -32,7 +32,45 @@ Parameters:
     Default: skyops-ms
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
   
+  RoleName:
+    Description: Name of the Role
+    Type: String
+    Default: orangehrms3
+
+  PolicyName:
+    Description: Name of the Policy conatin S3 Full Access
+    Type: String
+    Default: AmazonS3FullAccess
+  
 Resources:
+  OrangeHRMS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Ref PolicyName
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - s3:*
+                  - s3-object-lambda:*
+                Resource: "*"
+  
+  OrangeHRMS3InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref OrangeHRMS3Role
+
   MyEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -42,11 +80,11 @@ Resources:
       SecurityGroupIds: 
           - !Ref WebServerSecurityGroup
       SubnetId: !Ref PublicSubnet1
+      IamInstanceProfile: !Ref OrangeHRMS3InstanceProfile
       UserData:
         Fn::Base64: |
           #!/bin/bash
           echo "Hello, EC2!"
-
       Tags:
         - Key: Name
           Value: orange-hrm-docker
