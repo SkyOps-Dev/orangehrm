@@ -67,6 +67,16 @@ Parameters:
     AllowedValues:
       - t2.small
     ConstraintDescription: Must be a valid EC2 Instance Type.
+  
+  RoleName:
+    Description: Name of the Role
+    Type: String
+    Default: orangehrms3
+
+  PolicyName:
+    Description: Name of the Policy conatin S3 Full Access
+    Type: String
+    Default: AmazonS3FullAccess
 ###EC2_END###
 
 Resources:
@@ -94,3 +104,5 @@ Resources:
         InstanceType: !Ref InstanceType
         WebServerSecurityGroup: !GetAtt vpc.Outputs.WebServerSecurityGroup
         EC2KeyName: !Ref EC2KeyName
+        PolicyName: !Ref PolicyName
+        RoleName: !Ref RoleName
