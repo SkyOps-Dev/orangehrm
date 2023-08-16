@@ -91,7 +91,10 @@ jobs:
           echo "::set-output name=stack_status::$stack_status"
 
        - name: Deploy Main Stack
-         if: steps.main-stack.outputs.stack_status == 'NOT_FOUND'
+         env:
+          VpcStackName: $VpcStackName
+          RoleName: $RoleName
+         if: steps.main-stack.outputs.stack_status == 'NOT_FOUND' 
          run: |
           aws cloudformation create-stack \
             --stack-name MainStack \
