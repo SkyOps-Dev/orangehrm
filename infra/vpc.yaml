@@ -25,7 +25,6 @@ Parameters:
   VpcStackName:
     Description: The name of the VPC Stack that exports values 
     Type: String
-    Default: vpc
     
   VpcCIDR:
     Description: Please Enter the IP range for this VPC
