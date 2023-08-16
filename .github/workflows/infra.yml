@@ -98,8 +98,8 @@ jobs:
           aws cloudformation create-stack \
             --stack-name MainStack \
             --template-body file://main-vpc-ec2.yaml \
-            --parameters ParameterKey=VpcStackName,ParameterValue=vpc \
-            --parameters ParameterKey=RoleName,ParameterValue=orangehrms3policy \
+            --parameters "ParameterKey=VpcStackName,ParameterValue=$VPC_STACK_NAME" \
+            --parameters "ParameterKey=RoleName,ParameterValue=$ROLE_NAME" \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
