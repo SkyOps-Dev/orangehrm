@@ -35,7 +35,6 @@ Parameters:
   RoleName:
     Description: Name of the Role
     Type: String
-    Default: orangehrms3
 
   PolicyName:
     Description: Name of the Policy conatin S3 Full Access
