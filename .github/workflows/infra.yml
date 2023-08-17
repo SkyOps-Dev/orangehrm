@@ -5,7 +5,6 @@ on:
     branches:
       - 5.1-ec2-docker-infra
 env:
-  VpcStackName: vpc
   RoleName: orangehrms3policy
 
 jobs:
@@ -24,11 +23,6 @@ jobs:
              role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
              role-duration-seconds: 3600
              aws-region: us-east-1
-
-       - name: Debug Output
-         run: |
-          echo "VpcStackName: $VpcStackName"
-          echo "RoleName: $RoleName"
                       
        - name: Check if key pair exists
          run: |
@@ -98,7 +92,7 @@ jobs:
           aws cloudformation create-stack \
             --stack-name MainStack \
             --template-body file://main-vpc-ec2.yaml \
-            --parameters "ParameterKey=VpcStackName,ParameterValue=$VPC_STACK_NAME" \
+            --parameters "ParameterKey=VpcStackName,ParameterValue=vpc" \
                          "ParameterKey=RoleName,ParameterValue=$ROLE_NAME" \
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
