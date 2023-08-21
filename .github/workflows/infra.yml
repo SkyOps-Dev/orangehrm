@@ -66,7 +66,7 @@ jobs:
          run: |
            aws s3api create-bucket --bucket $S3_BUCKET_NAME --acl private --region us-east-1
 
-       # Step 6: Upload yamlfiles to the S3 bucket
+       # Step 6: Upload yaml files to the S3 bucket
        - name: Upload Files to S3 Bucket
          run: |
            aws s3 cp ./infra/ s3://$S3_BUCKET_NAME/ --recursive --acl private
@@ -76,7 +76,7 @@ jobs:
          run: |
            aws s3 ls s3://$S3_BUCKET_NAME/
 
-       # Step 8: Fetch the Main Stack Template from S3
+       # Step 8: Fetch the Main Stack Template from S3 bucket which we created above
        - name: Fetch Main Stack Template
          run: |
            aws s3 cp s3://$S3_BUCKET_NAME/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
@@ -104,7 +104,7 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
-       # Step 11: List CloudFormation Stacks and gather EC2 instance info
+       # Step 11: List CloudFormation Stacks and gather EC2 instance informaiton(specially IP address & DNS of EC2 instance)
        - name: List CloudFormation Stacks 
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
