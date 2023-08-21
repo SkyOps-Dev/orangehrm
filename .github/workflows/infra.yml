@@ -84,7 +84,7 @@ jobs:
        - name: Deploy Main Stack
          if: steps.main-stack.outputs.stack_status == 'NOT_FOUND' 
          run: |
-          
+          ROLE_NAME=${{ env.RoleName }}
           aws cloudformation create-stack \
             --stack-name MainStack \
             --template-body file://main-vpc-ec2.yaml \
