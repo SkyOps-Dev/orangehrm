@@ -9,6 +9,7 @@ env:
   KEY_PAIR_NAME: skyops-ms
   PARAMETER_NAME: private-key
   PRIVATE_KEY_FILE: skyops-ms.pem
+  S3_BUCKET_NAME: cfn-template09
 
 jobs:
   deploy:
@@ -63,22 +64,22 @@ jobs:
        # Step 5: Create an S3 bucket
        - name: Create S3 Bucket
          run: |
-           aws s3api create-bucket --bucket cfn-template09 --acl private --region us-east-1
+           aws s3api create-bucket --bucket $S3_BUCKET_NAME --acl private --region us-east-1
 
        # Step 6: Upload files to the S3 bucket
        - name: Upload Files to S3 Bucket
          run: |
-           aws s3 cp ./infra/ s3://cfn-template09/ --recursive --acl private
+           aws s3 cp ./infra/ s3://$S3_BUCKET_NAME/ --recursive --acl private
 
        # Step 7: List files in the S3 bucket
        - name: Check List of file into S3 Bucket
          run: |
-           aws s3 ls s3://cfn-template09/
+           aws s3 ls s3://$S3_BUCKET_NAME/
 
        # Step 8: Fetch the Main Stack Template from S3
        - name: Fetch Main Stack Template
          run: |
-           aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
+           aws s3 cp s3://$S3_BUCKET_NAME/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
      
        # Step 9: Check if the Main Stack already exists
        - name: Check if Main Stack Exists
