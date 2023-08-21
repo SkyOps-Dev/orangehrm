@@ -65,7 +65,6 @@ To grant the necessary permissions to the role, ensure the following policies ar
 * **IAMFullAccess** Provides full access to IAM via the AWS Management Console.
 * **AmazonS3FullAccess** Provides full access to all buckets via the AWS Management Console.
 * **AmazonSSMFullAccess** Provides full access to Amazon SSM.
-* **SecretsManagerReadWrite** Provides read/write access to AWS Secrets Manager via the AWS Management Console. Note: this exludes IAM actions, so combine with IAMFullAccess if rotation configuration is required.
 * **AWSCloudFormationFullAccess** Provides full access to AWS CloudFormation.
 Attach these policies to the AWS IAM role.
 
