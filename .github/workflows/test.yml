@@ -1,177 +1,73 @@
-name: Test
+name: OrangeHrm CI/CD
 
 on:
   push:
-  pull_request:
-
-jobs:
-  test:
-
-    runs-on: ubuntu-20.04
-
-    services:
-      mysql:
-        image: mariadb:10.3
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd "mysqladmin ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-          --tmpfs /var/lib/mysql/
-
+    branches:
+        - 5.1-docker
+jobs: 
+  SSH-into-instance:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+       - name: Checkout Repository
+         uses: actions/checkout@v2
+         
+       - name: Set up AWS CLI
+         uses: aws-actions/configure-aws-credentials@v2
+         with:
+             role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+             role-duration-seconds: 3600
+             aws-region: us-east-1
+          
+       - name: Retrieve Public IP from Parameter Store
+         run: |
+          PUBLIC_IP=$(aws ssm get-parameter --name "MyPublicIPAddress" --query "Parameter.Value" --output text)
+          echo "Retrieved Public IP:"
+          echo "$PUBLIC_IP"
+          echo "REMOTE_HOST=$PUBLIC_IP" >> $GITHUB_ENV
 
-      - name: Validate composer.json and composer.lock
-        run: |
-          cd src
-          composer validate --strict
+       - name: Retrieve Private Key from Parameter Store
+         run: |
+          PRIVATE_KEY=$(aws ssm get-parameter --name "private-key" --query "Parameter.Value" --output text)
+          mkdir -p ~/.ssh
+          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key
+          chmod 600 ~/.ssh/private_key
 
-      - name: Parse Git short hash
-        run: echo "git_short_hash=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: |
-          php7.4 -f /usr/bin/composer install -d src
-          php7.4 -f /usr/bin/composer install -d devTools/core
-          cd src/client
-          yarn install
-
-      - name: Install OrangeHRM
-        run: |
-          php7.4 installer/cli_install.php
-          mysqldump -V
-          php7.4 devTools/core/console.php i:create-test-db -p root --dump-options="--column-statistics=0"
-
-      - name: Configure LDAP server
-        if: "${{ github.event_name == 'push' }}"
-        run: |
-          cd src/plugins/orangehrmLDAPAuthenticationPlugin/test/config
-          docker run --detach --rm --name openldap \
-            --network ${{ job.container.network }} \
-            -p 389:1389 \
-            -e LDAP_ADMIN_USERNAME=admin \
-            -e LDAP_ADMIN_PASSWORD=admin \
-            -e LDAP_ROOT=dc=example,dc=org \
-            -e LDAP_CONFIG_ADMIN_ENABLED=yes \
-            -e LDAP_CONFIG_ADMIN_USERNAME=admin \
-            -e LDAP_CONFIG_ADMIN_PASSWORD=admin \
-            -e LDAP_SKIP_DEFAULT_TREE=yes \
-            -v $PWD/ldifs:/ldifs \
-            bitnami/openldap:latest
-          cat server-config.tpl.yaml > server-config.yaml
-
-      - name: Run Jest
-        run: |
-          cd src/client
-          yarn test:unit --coverage
-
-      - name: Run test
-        run: |
-          XDEBUG_MODE=coverage ./src/vendor/bin/phpunit --coverage-html coverage -d memory_limit=1G
-          tar cf - coverage/ | xz -z - > coverage.tar.xz
-
-      - name: Upload jest coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: jest-coverage
-          path: src/client/coverage
-
-      - name: Upload phpunit coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage
-          path: coverage.tar.xz
-
-      - name: Upload logs
-        uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: logs
-          path: src/log
-
-      - name: Stop LDAP container
-        if: "${{ github.event_name == 'push' && always() }}"
-        run: docker stop openldap
-
-  composer_check:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Validate composer.json and composer.lock
-        run: |
-          cd src
-          php8.0 -f /usr/bin/composer validate --strict
-          php8.1 -f /usr/bin/composer validate --strict
-
-      - name: Install depandancies on PHP 8.0
-        run: |
-          cd src
-          rm -rf vendor
-          php8.0 -f /usr/bin/composer install
-          php8.0 -f /usr/bin/composer dump-autoload -o
-
-      - name: Install depandancies on PHP 8.1
-        run: |
-          cd src
-          rm -rf vendor
-          php8.1 -f /usr/bin/composer install
-          php8.1 -f /usr/bin/composer dump-autoload -o
-
-  installation:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-20.04
-
-    services:
-      mysql:
-        image: mariadb:10.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install dependencies
-        run: |
-          php7.4 -f /usr/bin/composer install -d src
-          php7.4 -f /usr/bin/composer install -d devTools/core
-
-      - name: Install OrangeHRM with empty database password
-        run: |
-          sed -i 's/useSameDbUserForOrangeHRM: y/useSameDbUserForOrangeHRM: n/g' installer/cli_install_config.yaml
-          sed -i 's/orangehrmDatabaseUser: ~/orangehrmDatabaseUser: orangehrm_1/g' installer/cli_install_config.yaml
-          php7.4 installer/cli_install.php
-
-      - name: Install OrangeHRM with database user
-        run: |
-          php devTools/core/console.php i:reset
-          git checkout installer/cli_install_config.yaml
-          sed -i 's/useSameDbUserForOrangeHRM: y/useSameDbUserForOrangeHRM: n/g' installer/cli_install_config.yaml
-          sed -i 's/orangehrmDatabaseUser: ~/orangehrmDatabaseUser: orangehrm_2/g' installer/cli_install_config.yaml
-          sed -i 's/orangehrmDatabasePassword: ~/orangehrmDatabasePassword: 0rang3h!m/g' installer/cli_install_config.yaml
-          sed -i 's/databaseName: orangehrm_mysql/databaseName: db/g' installer/cli_install_config.yaml
-          php7.4 installer/cli_install.php
-
-      - name: Install OrangeHRM with existing database
-        run: |
-          php devTools/core/console.php i:reset
-          git checkout installer/cli_install_config.yaml
-          sed -i 's/isExistingDatabase: n/isExistingDatabase: y/g' installer/cli_install_config.yaml
-          sed -i 's/privilegedDatabaseUser: root/privilegedDatabaseUser: orangehrm_2/g' installer/cli_install_config.yaml
-          sed -i 's/privilegedDatabasePassword: root/privilegedDatabasePassword: 0rang3h!m/g' installer/cli_install_config.yaml
-          sed -i 's/databaseName: orangehrm_mysql/databaseName: db/g' installer/cli_install_config.yaml
-          mysql -u root -proot -h 127.0.0.1 -e "CREATE DATABASE db;"
-          php7.4 installer/cli_install.php
-
-      - name: Check dev tool reinstall command
-        run: |
-          php devTools/core/console.php i:reinstall
+       - name: SSH into EC2 Instance
+         run: |
+          REMOTE_HOST=$REMOTE_HOST
+          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" '
+            echo "Connected to the instance."
+            git clone https://github.com/SkyOps-Dev/orangehrm.git
+            cd orangehrm
+            git checkout remotes/origin/5.2-docker
+            sudo apt-get update -y
+            sudo apt-get install awscli -y
+            sudo apt-get install ca-certificates curl gnupg
+            sudo install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            sudo chmod a+r /etc/apt/keyrings/docker.gpg
+            echo \
+            "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+            "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            sudo apt-get update
+            sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+            sudo docker build -t orange .
+            sudo docker images
+           ')
+              
+       - name: Deploy Application & Database
+         run: |
+          REMOTE_HOST=$REMOTE_HOST
+          ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
+          (ssh -i ~/.ssh/private_key -o "StrictHostKeyChecking=no" "ubuntu@$REMOTE_HOST" ' 
+            cd orangehrm
+            aws s3 ls s3://orangehrm-backup/
+            aws s3 cp s3://orangehrm-backup/orange1_backup_2023-08-17-07-55-06.sql ./backup.sql
+            sudo docker compose up -d
+            sudo docker ps
+          ')
