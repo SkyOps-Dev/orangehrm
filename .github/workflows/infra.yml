@@ -16,10 +16,13 @@ jobs:
       id-token: write
       contents: read
     runs-on: ubuntu-latest
+    
     steps:
+       # Step 1: Check out the repository code
        - name: Checkout Code
          uses: actions/checkout@v2
 
+       # Step 2: Set up AWS CLI with assumed role credentials
        - name: Set up AWS CLI
          uses: aws-actions/configure-aws-credentials@v2
          with:
@@ -27,6 +30,7 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
                       
+       # Step 3: Check if the specified key pair exists; create if not
        - name: Check if key pair exists
          run: |
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
@@ -41,37 +45,42 @@ jobs:
             echo "Created key pair '$KEY_PAIR_NAME' successfully"
           fi
           
+       # Step 4: Check if the key exists in AWS Parameter Store; store if not
        - name: Check if key exists in Parameter Store
          run: |  
            if aws ssm get-parameter --name "$PARAMETER_NAME" --query "Parameter.Name" --output text; then
-           echo "Key '$PARAMETER_NAME' already exists in Parameter Store"
+             echo "Key '$PARAMETER_NAME' already exists in Parameter Store"
            else
-           
-           if [ -f "$PRIVATE_KEY_FILE" ]; then
-           aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
-           echo "Stored key in Parameter Store"
-           else
-           echo "Private key file '$PRIVATE_KEY_FILE' not found"
-           exit 1
-           fi
+             if [ -f "$PRIVATE_KEY_FILE" ]; then
+               aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
+               echo "Stored key in Parameter Store"
+             else
+               echo "Private key file '$PRIVATE_KEY_FILE' not found"
+               exit 1
+             fi
            fi
 
+       # Step 5: Create an S3 bucket
        - name: Create S3 Bucket
          run: |
            aws s3api create-bucket --bucket cfn-template09 --acl private --region us-east-1
 
+       # Step 6: Upload files to the S3 bucket
        - name: Upload Files to S3 Bucket
          run: |
            aws s3 cp ./infra/ s3://cfn-template09/ --recursive --acl private
 
+       # Step 7: List files in the S3 bucket
        - name: Check List of file into S3 Bucket
          run: |
            aws s3 ls s3://cfn-template09/
 
+       # Step 8: Fetch the Main Stack Template from S3
        - name: Fetch Main Stack Template
          run: |
            aws s3 cp s3://cfn-template09/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
      
+       # Step 9: Check if the Main Stack already exists
        - name: Check if Main Stack Exists
          id: main-stack
          run: |
@@ -81,6 +90,7 @@ jobs:
             --output text || echo "NOT_FOUND")
           echo "::set-output name=stack_status::$stack_status"
 
+       # Step 10: Deploy the Main Stack if it doesn't exist
        - name: Deploy Main Stack
          if: steps.main-stack.outputs.stack_status == 'NOT_FOUND' 
          run: |
@@ -93,12 +103,14 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
+       # Step 11: List CloudFormation Stacks and gather EC2 instance info
        - name: List CloudFormation Stacks 
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
            ec2_stacks=$(echo "$ec2_stacks" | jq -r '.[]')
            echo "::set-output name=ec2_stacks::$ec2_stacks"
            
+           # Fetch instance ID and related info
            instance_id=$(aws cloudformation describe-stack-resource --stack-name "$ec2_stacks" --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
            ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
            public_ip=$(echo $ec2_info | jq -r '.PublicIpAddress')
@@ -106,4 +118,5 @@ jobs:
            echo "Public IP: $public_ip"
            echo "Public DNS: $public_dns"
            
+           # Store the public IP address in AWS Parameter Store
            aws ssm put-parameter --name "MyPublicIPAddress" --value "$public_ip" --type String --overwrite
