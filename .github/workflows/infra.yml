@@ -31,7 +31,7 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
                       
-       # Step 3: Check if the specified key pair exists; Create if its not exits & and give the required permission to the .pem key
+       # Step 3: Check if the specified key pair exists; Create if its not exits ; Give the required permission to the .pem key
        - name: Check if key pair exists
          run: |
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
@@ -61,7 +61,7 @@ jobs:
              fi
            fi
 
-       # Step 5: Create an S3 bucket so we could push our infra.yml files into it which can be used to deploy our infrastructure.
+       # Step 5: Create an S3 bucket so we could push our infra.yaml files into it which can be used to deploy our infrastructure.
        - name: Create S3 Bucket
          run: |
            aws s3api create-bucket --bucket $S3_BUCKET_NAME --acl private --region us-east-1
@@ -71,12 +71,12 @@ jobs:
          run: |
            aws s3 cp ./infra/ s3://$S3_BUCKET_NAME/ --recursive --acl private
 
-       # Step 7: List files in the S3 bucket
+       # Step 7: List files in the S3 bucket to Check if the file are Uploaded
        - name: Check List of file into S3 Bucket
          run: |
            aws s3 ls s3://$S3_BUCKET_NAME/
 
-       # Step 8: Fetch the Main Stack Template from S3 bucket which we created above
+       # Step 8: Fetch the Main Stack Template from S3 Bucket which we created above to use this to create our infrastructure
        - name: Fetch Main Stack Template
          run: |
            aws s3 cp s3://$S3_BUCKET_NAME/main-vpc-ec2.yaml ./main-vpc-ec2.yaml
@@ -91,7 +91,7 @@ jobs:
             --output text || echo "NOT_FOUND")
           echo "::set-output name=stack_status::$stack_status"
 
-       # Step 10: Deploy the Main Stack if it doesn't exist
+       # Step 10: Deploy the Main Stack if it doesn't exist ; Skip this step if the Main Stack if already created
        - name: Deploy Main Stack
          if: steps.main-stack.outputs.stack_status == 'NOT_FOUND' 
          run: |
@@ -104,7 +104,7 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM
           aws cloudformation wait stack-create-complete --stack-name MainStack
 
-       # Step 11: List CloudFormation Stacks and gather EC2 instance informaiton(specially IP address & DNS of EC2 instance)
+       # Step 11: List CloudFormation Stacks ; Gather EC2 instance informaiton ; Specially IP address & DNS of EC2 instance
        - name: List CloudFormation Stacks 
          run: |
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
