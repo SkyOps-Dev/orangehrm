@@ -31,7 +31,7 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
                       
-       # Step 3: Check if the specified key pair exists; Create if its not exits
+       # Step 3: Check if the specified key pair exists; Create if its not exits & and give the required permission to the .pem key
        - name: Check if key pair exists
          run: |
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
