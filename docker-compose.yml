@@ -14,7 +14,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      #- mysql-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
       - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
   # Your Application Container
   app:
@@ -31,5 +31,5 @@ services:
       - app-data:/var/www/html
 
 volumes:
-  #mysql-data:
+  mysql-data:
   app-data:
