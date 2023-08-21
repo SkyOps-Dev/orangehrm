@@ -3,7 +3,7 @@ name: OrangeHrm CI/CD
 on:
   push:
     branches:
-        - 5.1-docker
+        - 5.2
 jobs: 
   SSH-into-instance:
     permissions:
@@ -43,7 +43,7 @@ jobs:
             echo "Connected to the instance."
             git clone https://github.com/SkyOps-Dev/orangehrm.git
             cd orangehrm
-            git checkout remotes/origin/5.2-docker
+            git checkout 5.2
             sudo apt-get update -y
             sudo apt-get install awscli -y
             sudo apt-get install ca-certificates curl gnupg
