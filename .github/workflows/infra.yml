@@ -6,6 +6,9 @@ on:
       - 5.1-ec2-docker-infra
 env:
   RoleName: orangehrms3policy
+  KEY_PAIR_NAME: skyops-ms
+  PARAMETER_NAME: private-key
+  PRIVATE_KEY_FILE: skyops-ms.pem
 
 jobs:
   deploy:
@@ -26,7 +29,6 @@ jobs:
                       
        - name: Check if key pair exists
          run: |
-          KEY_PAIR_NAME="skyops-ms"
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
             echo "Key pair '$KEY_PAIR_NAME' already exists"
             KEY_ALREADY_EXISTS="true"
@@ -40,15 +42,11 @@ jobs:
           fi
           
        - name: Check if key exists in Parameter Store
-         run: |
-           KEY_PAIR_NAME="skyops-ms"
-           PARAMETER_NAME="private-key"
-    
+         run: |  
            if aws ssm get-parameter --name "$PARAMETER_NAME" --query "Parameter.Name" --output text; then
            echo "Key '$PARAMETER_NAME' already exists in Parameter Store"
            else
-         
-           PRIVATE_KEY_FILE="skyops-ms.pem"
+           
            if [ -f "$PRIVATE_KEY_FILE" ]; then
            aws ssm put-parameter --name "$PARAMETER_NAME" --value file://"$PRIVATE_KEY_FILE" --type String --overwrite
            echo "Stored key in Parameter Store"
@@ -59,7 +57,6 @@ jobs:
            fi
 
        - name: Create S3 Bucket
-         if: success()
          run: |
            aws s3api create-bucket --bucket cfn-template09 --acl private --region us-east-1
 
