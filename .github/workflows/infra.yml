@@ -31,7 +31,7 @@ jobs:
              role-duration-seconds: 3600
              aws-region: us-east-1
                       
-       # Step 3: Check if the specified key pair exists; create if not
+       # Step 3: Check if the specified key pair exists; Create if its not exits
        - name: Check if key pair exists
          run: |
           if aws ec2 describe-key-pairs --key-names "$KEY_PAIR_NAME" --query "KeyPairs[0].KeyName" --output text; then
@@ -46,7 +46,7 @@ jobs:
             echo "Created key pair '$KEY_PAIR_NAME' successfully"
           fi
           
-       # Step 4: Check if the key exists in AWS Parameter Store; store if not
+       # Step 4: Check if the key exists in AWS Parameter Store; Store if its not exists
        - name: Check if key exists in Parameter Store
          run: |  
            if aws ssm get-parameter --name "$PARAMETER_NAME" --query "Parameter.Name" --output text; then
@@ -61,12 +61,12 @@ jobs:
              fi
            fi
 
-       # Step 5: Create an S3 bucket
+       # Step 5: Create an S3 bucket so we could push our infra.yml files into it which can be used to deploy our infrastructure.
        - name: Create S3 Bucket
          run: |
            aws s3api create-bucket --bucket $S3_BUCKET_NAME --acl private --region us-east-1
 
-       # Step 6: Upload files to the S3 bucket
+       # Step 6: Upload yamlfiles to the S3 bucket
        - name: Upload Files to S3 Bucket
          run: |
            aws s3 cp ./infra/ s3://$S3_BUCKET_NAME/ --recursive --acl private
