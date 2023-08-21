@@ -1,59 +1,90 @@
-![](https://www.orangehrm.com/themes/orangehrm-modern/static/images/logo.png)
+# Infrastructure Deployment Workflow
+This GitHub Actions workflow automates the deployment of infrastructure using AWS CloudFormation, S3, and EC2. It performs various tasks, such as creating key pairs, uploading files to S3, deploying CloudFormation stacks, and storing important information in AWS Parameter Store. The workflow consists of one job:
+* **deploy.**
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/orangehrm/orangehrm.svg)](https://hub.docker.com/r/orangehrm/orangehrm) [![SourceForge Downloads](https://img.shields.io/sourceforge/dm/orangehrm.svg)](https://sourceforge.net/projects/orangehrm/) [![SourceForge Downloads](https://img.shields.io/sourceforge/dt/orangehrm.svg)](https://sourceforge.net/projects/orangehrm/) [![codecov](https://codecov.io/gh/orangehrm/orangehrm/branch/develop/graph/badge.svg)](https://codecov.io/gh/orangehrm/develop)
+# Workflow Details
+## Workflow Trigger
+The workflow is triggered when a push event occurs on the **5.1-ec2-docker-infra** branch.
 
-# OrangeHRM Open Source Application
+## 1. Job: deploy
+1. **Checkout Code**: This step checks out the repository code to be used in subsequent steps.
 
-OrangeHRM is a comprehensive Human Resource Management (HRM) System that captures all the essential functionalities required for any enterprise. Copyright (C) 2006 OrangeHRM Inc., http://www.orangehrm.com/
+2. **Set up AWS CLI**: Configures AWS CLI credentials by assuming a specified AWS role.
 
-OrangeHRM is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+3. **Check if key pair exists**: Checks if the specified key pair exists; creates it if not.
 
-OrangeHRM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+4. **Check if key exists in Parameter Store**: Checks if the private key exists in AWS Parameter Store; stores it if not.
 
-## Getting started
+5. **Create S3 Bucket**: Creates an S3 bucket to hold CloudFormation templates and related files.
 
-- Install OrangeHRM using the web installer
-  https://github.com/orangehrm/orangehrm/wiki/Getting-started
+6. **Upload Files to S3 Bucket**: Uploads necessary files to the S3 bucket.
 
-- For further information on how to use the product please refer the Free User Guide available on http://orangehrm.com/
+7. **Check List of files in S3 Bucket**: Lists the files available in the S3 bucket.
 
-- In case Installation difficulties there is a seperate Installation Guides also available from the same source. 
+8. **Fetch Main Stack Template**: Retrieves the Main Stack template from the S3 bucket.
 
-- For Apache/PHP/MySQL Installation issues please refer to the Environment Setup Guide
+9. **Check if Main Stack Exists**: Checks if the Main Stack already exists using CloudFormation.
 
-- For OrangeHRM Installation issues please refer to the OrangeHRM Installation Guide
+10. **Deploy Main Stack**: Deploys the Main Stack using CloudFormation if it doesn't already exist.
 
-## OrangeHRM Mobile App
+11. **List CloudFormation Stacks**: Lists CloudFormation stacks related to EC2 instances and retrieves instance information.
 
-<a href="https://play.google.com/store/apps/details?id=com.orangehrm.opensource" target="_blank">
-<img height="54" alt='Get it on Google Play'
-    src='https://raw.githubusercontent.com/wiki/orangehrm/orangehrm/mobile/play_store_cropped_en_US.png'/>
-</a>
-<a href="https://apps.apple.com/us/app/orangehrm/id1527247547" target="_blank">
-<img height="53" alt='Download on the App Store'
-    src='https://raw.githubusercontent.com/wiki/orangehrm/orangehrm/mobile/app_store_en_US.svg'/>
-</a>
+## Prerequisites
 
-## Contribute
+- AWS IAM Role: Ensure you have an AWS IAM role set up with the necessary permissions for creating key pairs, interacting with EC2, S3, and CloudFormation, and using AWS Systems Manager Parameter Store.
 
-https://github.com/orangehrm/orangehrm/wiki/How-to-Contribute
+## Trust Relationship Policy for AWS IAM role
+The role to assume should have the following trust relationship policy:
+```console
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::<aws-account-ID>:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": "repo:<GithubUserName>/<GithubRepoName>:*",
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                }
+            }
+        }
+    ]
+}
+```
+Make sure to replace "repo:(GithubUserName)/(GithubRepoName):*" with the appropriate GitHub repository name and organization/user name, depending on your specific repository structure. Also, verify that the specified (aws-account-ID) is correct for your setup.
 
-## Resources
 
-https://github.com/orangehrm/orangehrm/wiki/Resources
+## Permissions for AWS IAM role
+To grant the necessary permissions to the role, ensure the following policies are attached:
 
-## Demo
-Live demo is available at : https://opensource-demo.orangehrmlive.com/index.php/auth/login
+* **AmazonEC2FullAccess** Provides full access to Amazon EC2 via the AWS Management Console.
+* **IAMFullAccess** Provides full access to IAM via the AWS Management Console.
+* **AmazonS3FullAccess** Provides full access to all buckets via the AWS Management Console.
+* **AmazonSSMFullAccess** Provides full access to Amazon SSM.
+* **SecretsManagerReadWrite** Provides read/write access to AWS Secrets Manager via the AWS Management Console. Note: this exludes IAM actions, so combine with IAMFullAccess if rotation configuration is required.
+* **AWSCloudFormationFullAccess** Provides full access to AWS CloudFormation.
+Attach these policies to the AWS IAM role.
 
-## Releases
-Sourceforge : https://sourceforge.net/p/orangehrm
+Please note that the permissions mentioned above provide full access to EC2, IAM, S3, SSM, and CloudFormation. Adjust the permissions as needed based on your requirements and security considerations.
 
-## Contribute
-https://github.com/orangehrm/orangehrm/wiki/How-to-Contribute
+## Configuration
 
+- **Branches**: The workflow is triggered when a push is made to the `5.1-ec2-docker-infra` branch. You can adjust this in the `on` section of the workflow.
 
-## Website
-https://www.orangehrm.com/
+- **Environment Variables**: Modify the environment variables in the `env` section to match your specific configuration.
 
-## License 
-GNU General Public License
+- **Secrets**: Ensure that the necessary secrets, such as `AWS_ROLE_TO_ASSUME`, are set up in your GitHub repository.
+
+## Usage
+
+1. Ensure that your AWS IAM role and permissions are correctly set up.
+
+2. Update the environment variables and other configuration parameters as needed.
+
+3. Create or modify the `.github/workflows/infra.yml` file in your repository with the contents of the provided workflow.
+
+4. Push your changes to the `5.1-ec2-docker-infra` branch to trigger the workflow.
