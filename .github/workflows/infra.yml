@@ -110,7 +110,7 @@ jobs:
            ec2_stacks=$(aws cloudformation list-stacks --query "StackSummaries[?StackStatus!='DELETE_COMPLETE' && contains(StackName, 'ec2')].StackName" --output json)
            ec2_stacks=$(echo "$ec2_stacks" | jq -r '.[]')
            echo "::set-output name=ec2_stacks::$ec2_stacks"
-           
+            
            # Fetch instance ID and related info
            instance_id=$(aws cloudformation describe-stack-resource --stack-name "$ec2_stacks" --logical-resource-id MyEC2Instance --query "StackResourceDetail.PhysicalResourceId" --output text)
            ec2_info=$(aws ec2 describe-instances --instance-ids $instance_id --query "Reservations[0].Instances[0]")
