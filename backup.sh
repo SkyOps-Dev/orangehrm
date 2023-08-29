@@ -41,4 +41,4 @@ else
   echo "Database backup failed."
 fi
 # Schedule the script to run again using cron job
-(crontab -l ; echo "*/5 * * * * /bin/bash ./backup.sh") | crontab -
+(crontab -l ; echo "0 18 * * 1-5 /bin/bash ./backup.sh") | crontab -
