@@ -21,10 +21,10 @@ TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
 BACKUP_FILENAME="${DB_NAME}_backup_${TIMESTAMP}.sql"
 
 # Grant PROCESS privilege to the user
-docker exec -i ${MYSQL_CONTAINER} mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT PROCESS ON *.* TO 'orange1'@'%'"
+docker exec -i ${MYSQL_CONTAINER} mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT PROCESS ON *.* TO 'orange1'@'%'"
 
 # Run the mysqldump command inside the MySQL container
-docker exec -i ${MYSQL_CONTAINER} mysqldump -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > "${BACKUP_DIR}/${BACKUP_FILENAME}"
+docker exec -i ${MYSQL_CONTAINER} mysqldump -u${DB_USER} -p"${DB_PASSWORD}" ${DB_NAME} > "${BACKUP_DIR}/${BACKUP_FILENAME}"
 
 # Check if the backup was successful
 if [ $? -eq 0 ]; then
@@ -41,4 +41,4 @@ else
   echo "Database backup failed."
 fi
 # Schedule the script to run again using cron job
-(crontab -l ; echo "0 18 * * 1-5 /bin/bash ./backup.sh") | crontab -
+(crontab -l ; echo "0 18 * * 1-5 /bin/bash /home/ubuntu/orangehrm/backup.sh") | crontab -
