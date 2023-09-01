@@ -45,4 +45,4 @@ else
   echo "Failed to upload backup file to S3."
 fi
 # Schedule the script to run again using cron job
-(crontab -l ; echo "0 18 * * 1-5 /bin/bash /home/ubuntu/orangehrm/backup.sh") | crontab -
+(crontab -l ; echo "0 13 * * 1-5 /bin/bash /home/ubuntu/orangehrm/backup.sh") | crontab -
