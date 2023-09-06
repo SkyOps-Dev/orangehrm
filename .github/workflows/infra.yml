@@ -10,7 +10,7 @@ env:
   PARAMETER_NAME: private-key
   PRIVATE_KEY_FILE: skyops-ms.pem
   S3_BUCKET_NAME: cfn-template09
-
+  
 jobs:
   deploy:
     permissions:
